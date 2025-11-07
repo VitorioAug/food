@@ -1,9 +1,9 @@
 package sp.senac.br.food.order;
 
-import org.hibernate.sql.Update;
+import com.vaadin.flow.data.provider.ArrayUpdater.Update;
 
 public interface OrderStatusObserver {
-    public Update onOrderStatusChanged(Order order);
+    public Update orderStatusUpdated(Order order);
 
-    
+    void update(Order order); 
 }
