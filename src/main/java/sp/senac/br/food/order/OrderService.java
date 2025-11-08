@@ -2,6 +2,8 @@ package sp.senac.br.food.order;
 
 import org.springframework.stereotype.Service;
 
+import sp.senac.br.food.observer.DeliveryListener;
+import sp.senac.br.food.observer.KitchenListener;
 import sp.senac.br.food.observer.OrderStatusObserver;
 import sp.senac.br.food.views.HomeView;
 
@@ -15,11 +17,6 @@ public class OrderService {
     private final OrderRepository orderRepository;
 
     private final List<OrderStatusObserver> listeners = new ArrayList<>();
-
-    public void setView(HomeView homeView) {       
-        this.listeners.add(new KitchenListener(homeView));
-        this.listeners.add(new DeliveryListener(homeView));
-    }
 
     private void notifyListeners(Order order) {
         for (OrderStatusObserver listener : listeners) {
@@ -47,15 +44,17 @@ public class OrderService {
     public void advanceOrderStatus(Order order) {
         var status = switch (order.getStatus()) {
             case PENDING -> OrderStatus.PREPARING;
-            case PREPARING ->  OrderStatus.IN_TRANSIT;
+            case PREPARING -> OrderStatus.IN_TRANSIT;
             case IN_TRANSIT, DELIVERED -> OrderStatus.DELIVERED;
         };
         order.setStatus(status);
         orderRepository.save(order);
+
+        notifyListeners(order);
     }
 
-
     public void setView(HomeView view) {
-        this.view = view;
+        this.listeners.add(new KitchenListener(view));
+        this.listeners.add(new DeliveryListener(view));
     }
 }
